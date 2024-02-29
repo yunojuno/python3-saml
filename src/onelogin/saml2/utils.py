@@ -926,24 +926,36 @@ class OneLogin_Saml2_Utils(object):
             raise Exception("Empty string supplied as input")
 
         logger.debug("OneLogin_Saml2_Utils.validate_sign")
-        logger.debug("xml: %s", xml)
+        logger.debug("OneLogin_Saml2_Utils.validate_sign xml: %s", xml)
 
         elem = OneLogin_Saml2_XML.to_etree(xml)
-        logger.debug("Enabling debug trace")
+        logger.debug("OneLogin_Saml2_Utils.validate_sign Enabling debug trace")
         xmlsec.enable_debug_trace(debug)
-        logger.debug("Adding ids")
+        logger.debug("OneLogin_Saml2_Utils.validate_sign Adding ids")
         xmlsec.tree.add_ids(elem, ["ID"])
 
+        logger.debug("OneLogin_Saml2_Utils.validate_sign xpath: %s", xpath)
         if xpath:
             signature_nodes = OneLogin_Saml2_XML.query(elem, xpath)
+            logger.debug(
+                "OneLogin_Saml2_Utils.validate_sign signature_nodes: %s",
+                signature_nodes,
+            )
         else:
             signature_nodes = OneLogin_Saml2_XML.query(
                 elem, OneLogin_Saml2_Utils.RESPONSE_SIGNATURE_XPATH
             )
-
+            logger.debug(
+                "OneLogin_Saml2_Utils.validate_sign signature_nodes: %s",
+                signature_nodes,
+            )
             if len(signature_nodes) == 0:
                 signature_nodes = OneLogin_Saml2_XML.query(
                     elem, OneLogin_Saml2_Utils.ASSERTION_SIGNATURE_XPATH
+                )
+                logger.debug(
+                    "OneLogin_Saml2_Utils.validate_sign signature_nodes: %s",
+                    signature_nodes,
                 )
         logger.debug("OneLogin_Saml2_XML.query complete")
 
