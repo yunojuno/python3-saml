@@ -138,11 +138,14 @@ class OneLogin_Saml2_Auth(object):
             "post_data" in self._request_data
             and "SAMLResponse" in self._request_data["post_data"]
         ):
+            logger.debug("Processing AuthnResponse")
             # AuthnResponse -- HTTP_POST Binding
             response = self.response_class(
                 self._settings, self._request_data["post_data"]["SAMLResponse"]
             )
+            logger.debug("AuthnResponse class loaded - retrieving XML")
             self._last_response = response.get_xml_document()
+            logger.debug("AuthnResponse XML retrieved")
 
             if response.is_valid(self._request_data, request_id):
                 self.store_valid_response(response)
