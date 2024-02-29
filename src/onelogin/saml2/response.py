@@ -80,6 +80,9 @@ class OneLogin_Saml2_Response(object):
         :rtype: bool
         """
         logger.debug("Validating SAML Response")
+        logger.debug(f"Request Data: {request_data}")
+        logger.debug(f"Request ID: {request_id}")
+        logger.debug(f"Raise Exceptions: {raise_exceptions}")
         self._error = None
         try:
             # Checks SAML version
@@ -420,8 +423,11 @@ class OneLogin_Saml2_Response(object):
 
         :raises: Exception. If the status is not success
         """
+        logger.debug("Checking status of SAML Response")
         status = OneLogin_Saml2_Utils.get_status(self.document)
+        logger.debug(f"Status: {status}")
         code = status.get("code", None)
+        logger.debug(f"Code: {code}")
         if code and code != OneLogin_Saml2_Constants.STATUS_SUCCESS:
             splited_code = code.split(":")
             printable_code = splited_code.pop()
