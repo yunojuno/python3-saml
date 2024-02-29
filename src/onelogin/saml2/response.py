@@ -79,6 +79,7 @@ class OneLogin_Saml2_Response(object):
         :returns: True if the SAML Response is valid, False if not
         :rtype: bool
         """
+        logger.debug("Validating SAML Response")
         self._error = None
         try:
             # Checks SAML version
@@ -109,8 +110,11 @@ class OneLogin_Saml2_Response(object):
             idp_entity_id = idp_data["entityId"]
             sp_data = self._settings.get_sp_data()
             sp_entity_id = sp_data["entityId"]
-
-            signed_elements = self.process_signed_elements()
+            try:
+                signed_elements = self.process_signed_elements()
+            except:
+                logger.exception("Error processing signed elements")
+                raise
 
             has_signed_response = (
                 "{%s}Response" % OneLogin_Saml2_Constants.NS_SAMLP in signed_elements

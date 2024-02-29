@@ -105,21 +105,45 @@ class OneLogin_Saml2_Auth(object):
         self._settings.set_strict(value)
 
     def store_valid_response(self, response):
+        logger.debug("Storing valid response")
+        logger.debug("Response: %s", response)
         self._attributes = response.get_attributes()
+        logger.debug("Response attributes: %s", self._attributes)
         self._friendlyname_attributes = response.get_friendlyname_attributes()
+        logger.debug(
+            "Response friendlyname attributes: %s", self._friendlyname_attributes
+        )
         self._nameid = response.get_nameid()
+        logger.debug("Response nameid: %s", self._nameid)
         self._nameid_format = response.get_nameid_format()
+        logger.debug("Response nameid format: %s", self._nameid_format)
         self._nameid_nq = response.get_nameid_nq()
+        logger.debug("Response nameid nq: %s", self._nameid_nq)
         self._nameid_spnq = response.get_nameid_spnq()
+        logger.debug("Response nameid spnq: %s", self._nameid_spnq)
         self._session_index = response.get_session_index()
+        logger.debug("Response session index: %s", self._session_index)
         self._session_expiration = response.get_session_not_on_or_after()
+        logger.debug("Response session expiration: %s", self._session_expiration)
         self._last_message_id = response.get_id()
+        logger.debug("Response message id: %s", self._last_message_id)
         self._last_assertion_id = response.get_assertion_id()
+        logger.debug("Response assertion id: %s", self._last_assertion_id)
         self._last_assertion_issue_instant = response.get_assertion_issue_instant()
+        logger.debug(
+            "Response assertion issue instant: %s", self._last_assertion_issue_instant
+        )
         self._last_authn_contexts = response.get_authn_contexts()
+        logger.debug("Response authn contexts: %s", self._last_authn_contexts)
         self._authenticated = True
+        logger.debug("Response authenticated: %s", self._authenticated)
         self._last_response_in_response_to = response.get_in_response_to()
+        logger.debug("Response in response to: %s", self._last_response_in_response_to)
         self._last_assertion_not_on_or_after = response.get_assertion_not_on_or_after()
+        logger.debug(
+            "Response assertion not on or after: %s",
+            self._last_assertion_not_on_or_after,
+        )
 
     def process_response(self, request_id=None):
         """
@@ -133,7 +157,8 @@ class OneLogin_Saml2_Auth(object):
         logger.debug("Calling OneLogin_Saml2_Auth.process_response")
         self._errors = []
         self._error_reason = None
-
+        logger.debug("Checking if SAMLResponse is in the request data")
+        logger.debug("Request data: %s", self._request_data)
         if (
             "post_data" in self._request_data
             and "SAMLResponse" in self._request_data["post_data"]
@@ -148,8 +173,11 @@ class OneLogin_Saml2_Auth(object):
             logger.debug("AuthnResponse XML retrieved")
 
             if response.is_valid(self._request_data, request_id):
+                logger.debug("AuthnResponse is valid")
+                logger.debug("Storing valid response")
                 self.store_valid_response(response)
             else:
+                logger.debug("AuthnResponse is not valid")
                 self._errors.append("invalid_response")
                 self._error_reason = response.get_error()
 
