@@ -42,26 +42,26 @@ class OneLogin_Saml2_Response(object):
         """
         self._settings = settings
         self._error = None
-        logger.debug("Parsing SAML Response")
+        logger.debug("OneLogin_Saml2_Response: Parsing SAML Response")
         self.response = OneLogin_Saml2_Utils.b64decode(response)
-        logger.debug(f"Decoded SAML Response: {self.response}")
+        logger.debug(f"OneLogin_Saml2_Response: Decoded SAML Response: {self.response}")
         self.document = OneLogin_Saml2_XML.to_etree(self.response)
-        logger.debug(f"Document: {self.document}")
+        logger.debug(f"OneLogin_Saml2_Response: Document: {self.document}")
         self.decrypted_document = None
         self.encrypted = None
         self.valid_scd_not_on_or_after = None
 
         # Quick check for the presence of EncryptedAssertion
-        logger.debug("Checking for EncryptedAssertion")
+        logger.debug("OneLogin_Saml2_Response: Checking for EncryptedAssertion")
         encrypted_assertion_nodes = self._query(
             "/samlp:Response/saml:EncryptedAssertion"
         )
         if encrypted_assertion_nodes:
-            logger.debug("EncryptedAssertion found")
+            logger.debug("OneLogin_Saml2_Response: EncryptedAssertion found")
             decrypted_document = deepcopy(self.document)
             self.encrypted = True
             self.decrypted_document = self._decrypt_assertion(decrypted_document)
-        logger.debug("OneLogin_Saml2_Response object created")
+        logger.debug("OneLogin_Saml2_Response: OneLogin_Saml2_Response object created")
 
     def is_valid(self, request_data, request_id=None, raise_exceptions=False):
         """
@@ -79,10 +79,12 @@ class OneLogin_Saml2_Response(object):
         :returns: True if the SAML Response is valid, False if not
         :rtype: bool
         """
-        logger.debug("Validating SAML Response")
-        logger.debug(f"Request Data: {request_data}")
-        logger.debug(f"Request ID: {request_id}")
-        logger.debug(f"Raise Exceptions: {raise_exceptions}")
+        logger.debug("OneLogin_Saml2_Response.is_valid: Validating SAML Response")
+        logger.debug(f"OneLogin_Saml2_Response.is_valid: Request Data: {request_data}")
+        logger.debug(f"OneLogin_Saml2_Response.is_valid: Request ID: {request_id}")
+        logger.debug(
+            f"OneLogin_Saml2_Response.is_valid: Raise Exceptions: {raise_exceptions}"
+        )
         self._error = None
         try:
             # Checks SAML version
@@ -100,11 +102,13 @@ class OneLogin_Saml2_Response(object):
                 )
 
             # Checks that the response has the SUCCESS status
-            logger.debug("Checking status")
+            logger.debug("OneLogin_Saml2_Response.is_valid: Checking status")
             self.check_status()
 
             # Checks that the response only has one assertion
-            logger.debug("Checking number of assertions")
+            logger.debug(
+                "OneLogin_Saml2_Response.is_valid: Checking number of assertions"
+            )
             if not self.validate_num_assertions():
                 raise OneLogin_Saml2_ValidationError(
                     "SAML Response must contain 1 assertion",
@@ -132,7 +136,9 @@ class OneLogin_Saml2_Response(object):
                 no_valid_xml_msg = (
                     "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
                 )
-                logger.debug("OneLogin_Saml2_XML.validate_xml")
+                logger.debug(
+                    "OneLogin_Saml2_Response.is_valid: OneLogin_Saml2_XML.validate_xml"
+                )
                 res = OneLogin_Saml2_XML.validate_xml(
                     self.document,
                     "saml-schema-protocol-2.0.xsd",
@@ -146,7 +152,9 @@ class OneLogin_Saml2_Response(object):
 
                 # If encrypted, check also the decrypted document
                 if self.encrypted:
-                    logger.debug("OneLogin_Saml2_XML.validate_xml (encrypted)")
+                    logger.debug(
+                        "OneLogin_Saml2_Response.is_valid: OneLogin_Saml2_XML.validate_xml (encrypted)"
+                    )
                     res = OneLogin_Saml2_XML.validate_xml(
                         self.decrypted_document,
                         "saml-schema-protocol-2.0.xsd",
@@ -158,12 +166,21 @@ class OneLogin_Saml2_Response(object):
                             OneLogin_Saml2_ValidationError.INVALID_XML_FORMAT,
                         )
 
-                logger.debug("getting security data")
+                logger.debug("OneLogin_Saml2_Response.is_valid: getting security data")
                 security = self._settings.get_security_data()
+                logger.debug(
+                    f"OneLogin_Saml2_Response.is_valid: security data: {security}"
+                )
+                logger.debug(
+                    "OneLogin_Saml2_Response.is_valid: checking if the response is signed"
+                )
                 current_url = OneLogin_Saml2_Utils.get_self_url_no_query(request_data)
 
                 # Check if the InResponseTo of the Response matchs the ID of the AuthNRequest (requestId) if provided
                 in_response_to = self.get_in_response_to()
+                logger.debug(
+                    f"OneLogin_Saml2_Response.is_valid: InResponseTo: {in_response_to}"
+                )
                 if in_response_to is not None and request_id is not None:
                     if in_response_to != request_id:
                         raise OneLogin_Saml2_ValidationError(
@@ -189,6 +206,9 @@ class OneLogin_Saml2_Response(object):
                         )
 
                 # Checks that a Conditions element exists
+                logger.debug(
+                    "OneLogin_Saml2_Response.is_valid: checking that a Conditions element exists"
+                )
                 if not self.check_one_condition():
                     raise OneLogin_Saml2_ValidationError(
                         "The Assertion must include a Conditions element",
@@ -196,9 +216,15 @@ class OneLogin_Saml2_Response(object):
                     )
 
                 # Validates Assertion timestamps
+                logger.debug(
+                    "OneLogin_Saml2_Response.is_valid: validating assertion timestamps"
+                )
                 self.validate_timestamps(raise_exceptions=True)
 
                 # Checks that an AuthnStatement element exists and is unique
+                logger.debug(
+                    "OneLogin_Saml2_Response.is_valid: checking that an AuthnStatement element exists and is unique"
+                )
                 if not self.check_one_authnstatement():
                     raise OneLogin_Saml2_ValidationError(
                         "The Assertion must include an AuthnStatement element",
@@ -304,6 +330,8 @@ class OneLogin_Saml2_Response(object):
                     "/saml:Subject/saml:SubjectConfirmation"
                 )
 
+                logger.debug("OneLogin_Saml2_Response: Checking SubjectConfirmation")
+
                 for scn in subject_confirmation_nodes:
                     method = scn.get("Method", None)
                     if method and method != OneLogin_Saml2_Constants.CM_BEARER:
@@ -358,6 +386,10 @@ class OneLogin_Saml2_Response(object):
                         OneLogin_Saml2_ValidationError.NO_SIGNED_MESSAGE,
                     )
 
+            logger.debug(
+                "OneLogin_Saml2_Response.is_valid: Checking if the response is signed"
+            )
+
             if not signed_elements or (
                 not has_signed_response and not has_signed_assertion
             ):
@@ -381,6 +413,9 @@ class OneLogin_Saml2_Response(object):
                     multicerts = idp_data["x509certMulti"]["signing"]
 
                 # If find a Signature on the Response, validates it checking the original response
+                logger.debug(
+                    "OneLogin_Saml2_Response.is_valid: validating signature of the response"
+                )
                 if has_signed_response and not OneLogin_Saml2_Utils.validate_sign(
                     self.document,
                     cert,
@@ -411,14 +446,14 @@ class OneLogin_Saml2_Response(object):
                         "Signature validation failed. SAML Response rejected",
                         OneLogin_Saml2_ValidationError.INVALID_SIGNATURE,
                     )
-            logger.debug("SAML Response is valid")
+            logger.debug("OneLogin_Saml2_Response: SAML Response is valid")
             return True
         except Exception as err:
-            logger.debug("SAML Response is NOT valid")
+            logger.debug("OneLogin_Saml2_Response: SAML Response is NOT valid")
             self._error = str(err)
             debug = self._settings.is_debug_active()
             if debug:
-                logger.debug("Printing error")
+                logger.debug("OneLogin_Saml2_Response: Printing error")
                 print(err)
             if raise_exceptions:
                 raise
@@ -430,11 +465,11 @@ class OneLogin_Saml2_Response(object):
 
         :raises: Exception. If the status is not success
         """
-        logger.debug("Checking status of SAML Response")
+        logger.debug("OneLogin_Saml2_Response: Checking status of SAML Response")
         status = OneLogin_Saml2_Utils.get_status(self.document)
-        logger.debug(f"Status: {status}")
+        logger.debug(f"OneLogin_Saml2_Response: Status: {status}")
         code = status.get("code", None)
-        logger.debug(f"Code: {code}")
+        logger.debug(f"OneLogin_Saml2_Response: Code: {code}")
         if code and code != OneLogin_Saml2_Constants.STATUS_SUCCESS:
             splited_code = code.split(":")
             printable_code = splited_code.pop()
