@@ -100,9 +100,11 @@ class OneLogin_Saml2_Response(object):
                 )
 
             # Checks that the response has the SUCCESS status
+            logger.debug("Checking status")
             self.check_status()
 
             # Checks that the response only has one assertion
+            logger.debug("Checking number of assertions")
             if not self.validate_num_assertions():
                 raise OneLogin_Saml2_ValidationError(
                     "SAML Response must contain 1 assertion",
@@ -130,6 +132,7 @@ class OneLogin_Saml2_Response(object):
                 no_valid_xml_msg = (
                     "Invalid SAML Response. Not match the saml-schema-protocol-2.0.xsd"
                 )
+                logger.debug("OneLogin_Saml2_XML.validate_xml")
                 res = OneLogin_Saml2_XML.validate_xml(
                     self.document,
                     "saml-schema-protocol-2.0.xsd",
@@ -143,6 +146,7 @@ class OneLogin_Saml2_Response(object):
 
                 # If encrypted, check also the decrypted document
                 if self.encrypted:
+                    logger.debug("OneLogin_Saml2_XML.validate_xml (encrypted)")
                     res = OneLogin_Saml2_XML.validate_xml(
                         self.decrypted_document,
                         "saml-schema-protocol-2.0.xsd",
@@ -154,6 +158,7 @@ class OneLogin_Saml2_Response(object):
                             OneLogin_Saml2_ValidationError.INVALID_XML_FORMAT,
                         )
 
+                logger.debug("getting security data")
                 security = self._settings.get_security_data()
                 current_url = OneLogin_Saml2_Utils.get_self_url_no_query(request_data)
 
@@ -406,12 +411,14 @@ class OneLogin_Saml2_Response(object):
                         "Signature validation failed. SAML Response rejected",
                         OneLogin_Saml2_ValidationError.INVALID_SIGNATURE,
                     )
-
+            logger.debug("SAML Response is valid")
             return True
         except Exception as err:
+            logger.debug("SAML Response is NOT valid")
             self._error = str(err)
             debug = self._settings.is_debug_active()
             if debug:
+                logger.debug("Printing error")
                 print(err)
             if raise_exceptions:
                 raise
